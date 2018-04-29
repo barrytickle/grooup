@@ -1,0 +1,271 @@
+<!--
+  The aim of this file is to embed all of the necessary code which is required for this converter to work. As this file would be demonstrated as a widget, it is important for this to load instantly, with minimal external requests coming from this file.
+-->
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" >
+
+    <style>
+    /* Code for the box in which the converter has been held within */
+      #widget-form{
+        box-sizing: border-box;
+        width:450px;
+        height:450px;
+        display:table;
+        border-radius: 5px;
+        font-family: "HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
+        padding:30px;
+        color:#788188;
+      }
+
+      #widget-form h3{
+        font-size: 1.125em;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0 0 17.5px;
+        font-family: "Montserrat","HelveticaNeue","Helvetica Neue",sans-serif;
+        font-weight: 400;
+        line-height: 1.2;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+      }
+      /* Controls the input boxes for the form, styles the way the form has been displayed */
+      form{
+        width:80%;
+        margin:0 auto;
+        display:table-cell;
+        vertical-align: middle;
+        text-align: center;
+        padding:30px;
+      }
+
+      /* Sets width for all boxes within the converter */
+      form input, form select{
+        width:85%;
+      }
+
+      .currency-group{
+        display:table;
+        width:100%;
+        margin-bottom:30px;
+      }
+
+      .currency-group input, select{
+        display:table-cell;
+        padding:10px 20px;
+
+      }
+
+      .currency-group input{
+        border:1px solid #d2d2d2;
+        border-right:0;
+        padding:11px 20px;
+      }
+
+      .currency-group select{
+        border:1px solid #d2d2d2;
+        border-left:0;
+      }
+      .clearfix{
+        display:table;
+        clear:both;
+      }
+    </style>
+
+  </head>
+  <body>
+    <div id="widget-form">
+      <table>
+        <tr>
+          <td style="padding:30px;">
+            <h3>Currency Conversion</h3>
+            <p>Enter your value below to automatically convert your currency into your preferrred value</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <form enctype="multipart/form-data" method="post"id="currency-form">
+              <table class="currency-group">
+                <tr>
+                  <td style="width:60%;"><input type="text" id="currency"></td>
+                  <td style="width:40%;"><select id="select-list"></select></td>
+                </tr>
+                <tr>
+                  <td style="width:60%;"><input type="text" id="result" disabled></td>
+                  <td style="width:40%;"><select id="convert-list"></select></td>
+                </tr>
+              </table>
+            </form>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+
+
+    <script>
+
+    /*
+      ==============================
+                            CONFIG
+      ==============================
+
+      Note: this tool is designed to be a standalone widget, this is the only page you will need and will not depend
+      on any external entities to style and add performance to the product.
+
+      Within this file you can change the colour of the select boxes, and the background of the widget. To do this,
+      simply change the value of the variables below.
+
+      ==============================
+      EMBEDDING
+      ==============================
+
+      PHP: Through PHP, I would recommend embedding this widget via the file_get_contents attribute, or simply
+      by using an include. The widget is designed to work standalone, so you will not need to specifically place
+      this file in any specific folders.
+
+      HTML: Through html, this widget can either be embedded via an iframe or through ajax. the iframe will
+      work as intended, after setting the dimensions of the iframe to 450px by 450px (Native resolution).
+
+      An ajax request to the file shall also work, if you append the data of the file to an element of your choosing.
+
+     */
+
+     /*
+     ==============================
+                    CONFIG VARIABLES
+     ==============================
+     */
+
+    var select = '#F8F9F9'; /* This variable will change the colour of the select boxes */
+    var background = '#ffffff'; /*This variable will change the colour of the widget background */
+
+
+
+    /* This section will apply the config variables to the correct elements within the widget. */
+    document.getElementById('select-list').style.backgroundColor = select; /* Changes the colour of the select box */
+    document.getElementById('convert-list').style.backgroundColor = select; /* Changes the colour of the select box */
+    document.getElementById('widget-form').style.backgroundColor = background; /* Changes the colour of the widget background */
+
+
+
+
+    /*
+      The following function is designed to contain all the code which can be constantly called upon changes of the select box.
+      By default, the converter is set to convert from GBP to a value of your choosing, this can be modified further down.
+
+    */
+
+
+    function load_data(base){
+
+        /*
+          The function will first make an xml request to the api, which provides live updated data of the currency conversion rates.
+        */
+      var xhr = new XMLHttpRequest();
+
+      xhr.open('GET', 'https://api.fixer.io/latest?base='+base);
+      xhr.onload = function() {
+
+
+        /*
+          This function will be called constantly, dependant on the base value of the API, the base value (GBP) will change all of the
+          elements which are returned through JSON, meaning that all of the conversion rate values will be returned from the file itself.
+
+          This has been put into a function as it is constantly called on key press of the input box, the widget will update live on each
+          keypress saving the time taken for the currency to be converted.
+        */
+        function generate_numbers(){
+          var currency = document.getElementById('currency').value;
+          var currency_list = document.getElementById('convert-list').value;
+          var convert_2 = rate[currency_list];
+          var result = (currency * convert_2).toFixed(2);
+          document.getElementById('result').value = result;
+        }
+
+
+
+        /* This will check if the external api is active upon ajax request */
+          if (xhr.status === 200) {
+            /* This will parse the json file from the external API url */
+            var json = JSON.parse(xhr.responseText);
+            var SelectOne = document.getElementById('select-list');
+            var SelectTwo = document.getElementById('convert-list');
+            /* This will reset both arrays, to import the new data from the ajax call */
+            SelectOne.options.length = 0;
+            SelectTwo.options.length = 0;
+
+            var base = json.base;
+            var rate = json.rates;
+            var select = document.getElementById('select-list');
+            var convert = document.getElementById('convert-list');
+
+            /* This will now create an option value with the new base element, this will append it to the top of the array, to inform the user which option they have selected */
+
+            var opt = document.createElement('option');
+            opt.value = base;
+            opt.innerHTML = base;
+            select.appendChild(opt);
+
+              /*
+                This will loop through  the json file, adding this to the array, using the previously declared variables "select" and "convert", the following
+                select boxes will now be populated with the new values, dependent on what is called */
+
+            for (i in rate) {
+              var opt = document.createElement('option');
+              opt.value = i;
+              opt.innerHTML = i;
+              select.appendChild(opt);
+            }
+            for (i in rate) {
+              var opt = document.createElement('option');
+              opt.value = i;
+              opt.innerHTML = i;
+              convert.appendChild(opt);
+            }
+
+          /* Generate numbers will check the value of the input field, which will calculate a conversion by multiplying the user input, by the exchange of the currency */
+            generate_numbers();
+
+
+            /*  The widget will now wait for user input, which will also generate a new value dependant on what the user has entered */
+            document.getElementById('currency').addEventListener('keyup', function(){
+                generate_numbers();
+            });
+
+            /*
+              The widget will wait for a select box to be changed, to generate a new set of numbers dependant on that value.
+              "convert-list" will be the bottom select box, which users may edit freely. However, the widget will reset itself if the user
+              must change the base url, due to all values needing to be reloaded.
+              */
+            document.getElementById('convert-list').addEventListener('change', function(){
+                  generate_numbers();
+            });
+
+          }
+          else {
+              alert('Request failed.  Returned status of ' + xhr.status);
+          }
+      };
+      xhr.send();
+    }
+
+  /* The widget will always use GBP as the default value, this chan be changed dependent of the country */
+    load_data('GBP');
+
+    /* This will wait for the base select box to be changed, after this it will reload all values back into the select fields */
+
+    document.getElementById('select-list').addEventListener('change', function(){
+      var value = document.getElementById('select-list').value;
+      load_data(value);
+    });
+    </script>
+
+  </body>
+</html>
